@@ -11,6 +11,10 @@ import csv
 import sklearn
 from sklearn.model_selection import train_test_split
 
+#source activate carnd-term1
+#if cv2 fails.. 
+#pip install opencv-python
+
 def generator(samples, batch_size=32):
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
@@ -63,10 +67,12 @@ def make_model():
     model.add(Convolution2D(48, 3, 3, subsample=(2, 2), border_mode="same"))
     model.add(ELU())
     model.add(Convolution2D(64, 3, 3, subsample=(2, 2), border_mode="same"))
+    model.add(ELU())
+    model.add(Convolution2D(128, 3, 3, subsample=(2, 2), border_mode="same"))
     model.add(Flatten())
     model.add(Dropout(.2))
     model.add(ELU())
-    model.add(Dense(7680))
+    model.add(Dense(3840))
     model.add(Dropout(.5))
     model.add(ELU())
     model.add(Dense(256))
@@ -90,6 +96,8 @@ def load_csv(filename, data_path):
         filename = os.path.basename(source_path)
         fullpath = os.path.join(data_path, 'IMG', filename)
         steering = float(line['steering'])
+        if steering == 0.0:
+            continue
         ret.append((fullpath, steering))
     return ret
 
@@ -118,7 +126,8 @@ def make_generators(filename, data_path):
 
 
 def train():
-    data_path = 'd://projects//udacity_car_sim//tawn_drive'
+    #data_path = './DriveData'
+    data_path = 'd:/projects/udacity_car_sim/log/'
     cvs_filename = os.path.join(data_path, 'driving_log.csv')
 
     X_train, y_train = load_data(cvs_filename, data_path)
