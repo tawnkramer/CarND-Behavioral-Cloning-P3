@@ -64,7 +64,8 @@ def telemetry(sid, data):
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
 
         #we scaled it up for training. scale back down for use.
-        steering_angle = steering_angle / 25.0
+        #steering_angle = steering_angle / 25.0
+        steering_angle = steering_angle
 
         throttle = controller.update(float(speed))
 
