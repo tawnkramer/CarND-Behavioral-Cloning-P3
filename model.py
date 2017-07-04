@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from keras.models import Sequential, Model
 from keras.layers import Cropping2D, Flatten, Dense, Lambda, Convolution2D, ELU
-from keras.layers import Dropout, MaxPooling2D
+from keras.layers import Dropout, MaxPooling2D, Activation, AveragePooling2D
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 import cv2
 import matplotlib.pyplot as plt
@@ -18,6 +18,7 @@ import random
 #source activate carnd-term1
 #if cv2 fails.. 
 #pip install opencv-python
+steering_scale = 25.0
 
 def generator(samples, batch_size=32, perc_to_augment=0.5):
     num_samples = len(samples)
@@ -42,7 +43,7 @@ def generator(samples, batch_size=32, perc_to_augment=0.5):
                 image = np.array(image)
                 if do_augment and random.uniform(0.0, 1.0) < perc_to_augment:
                     image = augment.augment_image(image, shadows)
-                center_angle = steering
+                center_angle = steering * steering_scale
                 images.append(image)
                 angles.append(center_angle)
 
@@ -67,6 +68,58 @@ def show_model_summary(model):
         print(layer.output_shape)
 
 def make_model():
+    model = Sequential()
+
+    input_shape=(160,320,3)
+
+    # set up cropping2D layer
+    model.add(Cropping2D(cropping=((50,20), (0,0)), input_shape=(160,320,3)))
+    
+    #use half the image data in each dimension
+    #model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    #use half the image data in each dimension
+    model.add(AveragePooling2D(pool_size=(2, 2)))
+
+    #normalize color data to center on zero with mean variance of 1
+    model.add(Lambda(lambda x: (x / 255.0) - 0.5))
+
+    #model.add(Lambda(lambda x: x/127.5 - 1.,
+    #        input_shape=input_shape,
+    #        output_shape=input_shape))
+    
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), border_mode="same"))
+    model.add(Activation('relu'))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), border_mode="same"))
+    model.add(Activation('relu'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), border_mode="same"))
+    model.add(Activation('relu'))
+    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), border_mode="same"))
+    model.add(Activation('relu'))
+    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), border_mode="same"))
+    model.add(Activation('relu'))
+    model.add(Flatten())
+    model.add(Dense(640))
+    model.add(Activation('relu'))
+    model.add(Dropout(.5))
+    model.add(Dense(100))
+    model.add(Activation('relu'))
+    model.add(Dropout(.5))
+    model.add(Dense(50))
+    model.add(Activation('relu'))
+    model.add(Dropout(.5))
+    model.add(Dense(10))
+    model.add(Activation('tanh'))
+
+    #a single float output for steering command
+    model.add(Dense(1))
+
+    #choose a loss function and optimizer
+    model.compile(loss='mse', optimizer='adam')
+
+    return model
+
+def make_model_four():
     model = Sequential()
 
     # set up cropping2D layer
@@ -189,6 +242,8 @@ def make_model_two():
 
 def load_csv(filename, data_path):
     ret = []
+    filename = os.path.join(data_path, filename)
+
     lines = read_log_csv(filename)
     for line in lines:
         source_path = line['center']
@@ -200,10 +255,16 @@ def load_csv(filename, data_path):
         ret.append((fullpath, steering))
     return ret
 
-def load_data(filename, data_path):
+def load_csvs(filename, data_paths):
+    ret = []
+    for path in data_paths:
+        ret = ret + load_csv(filename, path)
+    return ret
+
+def load_data(filename, data_paths):
     images = []
     measurements = []
-    lines = load_csv(filename, data_path)
+    lines = load_csvs(filename, data_paths)
     for line in lines:
         fullpath, steering = line
         #cv2 was reading this as a BGR or something
@@ -220,15 +281,15 @@ def load_data(filename, data_path):
 
     return np.array(images), np.array(measurements)
 
-def make_generators(filename, data_path, batch_size=32, cvs_val_filename=None):
-    lines = load_csv(filename, data_path)
-    if cvs_val_filename is not None and os.path.exists(cvs_val_filename):
-        train_samples = lines
-        validation_samples = load_csv(cvs_val_filename, data_path)
-    else:
-        train_samples, validation_samples = train_test_split(lines, test_size=0.2)
+def make_generators(filename, data_paths, batch_size=32, cvs_val_filename=None):
+    lines = load_csvs(filename, data_paths)
+    #if cvs_val_filename is not None and os.path.exists(cvs_val_filename):
+    #    train_samples = lines
+    #    validation_samples = load_csvs(cvs_val_filename, data_paths)
+    #else:
+    train_samples, validation_samples = train_test_split(lines, test_size=0.2)
     # compile and train the model using the generator function
-    train_generator = generator(train_samples, batch_size=batch_size, perc_to_augment=0.8)
+    train_generator = generator(train_samples, batch_size=batch_size, perc_to_augment=0.5)
     validation_generator = generator(validation_samples, batch_size=batch_size, perc_to_augment=0.0)
     n_train = len(train_samples)
     n_val = len(validation_samples)
@@ -236,22 +297,22 @@ def make_generators(filename, data_path, batch_size=32, cvs_val_filename=None):
 
 
 def train():
-    #data_path = './DriveData'
+    data_paths = ['./more_driving', './tawn_drive', './DriveData']
     #data_path = 'd:/projects/udacity_car_sim/log/'
     #data_path = 'f:/log/'
-    data_path = 'c:/temp/log/'
+    #data_path = 'c:/temp/log/'
     #data_path = 'd:/projects/udacity_car_sim/tawn_drive/'
     #data_path = 'd:/projects/udacity_car_sim/data/'
-    cvs_filename = os.path.join(data_path, 'driving_log.csv')
-    cvs_val_filename = os.path.join(data_path, 'validation_log.csv')
+    cvs_filename = 'driving_log.csv'
+    cvs_val_filename = 'validation_log.csv'
     use_generators = True
     epochs = 50
     batch_size = 128
 
     if use_generators:
-        train_generator, validation_generator, n_train, n_val = make_generators(cvs_filename, data_path, batch_size, cvs_val_filename)
+        train_generator, validation_generator, n_train, n_val = make_generators(cvs_filename, data_paths, batch_size, cvs_val_filename)
     else:
-        X_train, y_train = load_data(cvs_filename, data_path)
+        X_train, y_train = load_data(cvs_filename, data_paths)
 
 
     model = make_model()
