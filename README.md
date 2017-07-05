@@ -14,13 +14,14 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+[image1]: ./examples/NetworkArch.png "Model Visualization"
+[image2]: ./examples/driving_example.jpg "Grayscaling"
+[image3]: ./examples/sim1.jpg "Recovery Image"
+[image4]: ./examples/sim2.jpg "Recovery Image"
+[image5]: ./examples/sim3.jpg "Recovery Image"
+[image6]: ./examples/training_simulator.png "custom training sim"
+[image7]: ./examples/ImageAugmentation.png "Image Aug"
+
 
 ## Rubric Points
 ##### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -76,13 +77,13 @@ For details about how I created the training data, see the next section.
 
 The overall strategy for deriving a model architecture was to start from the accepted, capable NVidia design and then iterate on hyper parameters and layer settings to understand where improvements may lie. Multiple convolutional layers in this network are capable of creating higher layers of abstraction that allow for detection and use of lane edges and road features to predict steering. But they are equally capable of memorizing the course and using unrelated features such as tree location and sky features to predict steering. This manifests as low mean squared error on the training set, with much higher error on the validation sets.
 
-One way of combating this tendency to memorize is to supply enough varied training data that the network is forced to learn abstractions. There is a balance between the quantity and quality of training data, and the network structure that will glean information from it. Neural networks tend to catasrophically forget. That is, they need equal samples of all possiblities at the same time. It could be trained to take one turn perfectly, and given a novel turn, fail to generalize. If then trained on only on the new situation, it would likley excell and then reduce it's fitness to handle the first case. Both cases must be sampled in sufficient ballance to create a network that can generalize to both.
+One way of combating this tendency to memorize is to supply enough varied training data that the network is forced to learn abstractions. There is a balance between the quantity and quality of training data, and the network structure that will glean information from it. Neural networks tend to catasrophically forget. That is, they need equal samples of all possiblities at the same time. It could be trained to take one turn perfectly, and given a novel turn, fail to generalize. If then trained on only on the new situation, it would likely excell and then reduce it's fitness to handle the first case. Both cases must be sampled in sufficient ballance to create a network that can generalize to both.
 
 Neural networks establish a deterministic function that will react predictably to the same input. Given the same exact image, the nework will produce the same answer each time, correct or not. It is incumbant on the creator and designer to make sure to sample enough possiblities to represent all possible cases it may see in the future. 
 
 We are fortunate that driving is such a restricted domain that it is within the realm of possiblity to represent enough of the problem set to allow it to abstract in a useful way. This is only possible because of the redundancy and monotony of the driving problem. But it can not produce steering output any larger than it saw as input during training. The upper max of steering values is predetermined during training.
 
-Consequently, the quantity of examples which require large steering values must be well represented in the training set. It is natural for most training sets to contain a predominance of examples with little or no steering. To combat that, I developed a [seperate training simulator](https://github.com/tawnkramer/sdsandbox) that can generate a large quantity of randomly generated road curvature in stochastically equal amounts. Further more, I used a PID controller with perfect knowledge of the road center to automatically generate a steering signal that was highly correlated with the road features. The tendency of PID controller to oscillate around the ideal path created an nice sampling of views and steering with very little zero steering samples.
+Consequently, the quantity of examples which require large steering values must be well represented in the training set. It is natural for most training sets to contain a predominance of examples with little or no steering. To combat that, I developed a [seperate training simulator](https://github.com/tawnkramer/sdsandbox) that can generate a large quantity of randomly generated road curvature in stochastically equal amounts. Further more, I used a PID controller with perfect knowledge of the road center to automatically generate a steering signal that was highly correlated with the road features. The tendency of PID controller to oscillate around the ideal path created an nice sampling of views and steering with very few straight or zero-steering samples.
 
 Another way to force learning only relavant features is to mask areas of the image that are unlikely to contribute well, such as above the horizon line. This has the side effect of reducing the pixel count, which reduces the quantity of trainable weights in the network. Fewer weights equals faster training and acts to limit it's overall cabaility to over fit.
 
@@ -96,34 +97,36 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
-
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes:
 
 ![alt text][image1]
 
 #### 3. Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+To capture good driving behavior, I first recorded three laps on track one using center lane driving. Here is an example image of center lane driving:
 
 ![alt text][image2]
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
+I then recorded more data from my custom simulator:
 
 ![alt text][image3]
 ![alt text][image4]
 ![alt text][image5]
+![alt text][image6]
 
 Then I repeated this process on track two in order to get more data points.
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
+As we load images, we can optionally augment them in some manner that doesn't
+    change their underlying meaning or features. This is a combination of
+    brightness, contrast, sharpness, and color PIL image filters applied with random
+    settings. Optionally a shadow image may be overlayed with some random rotation and
+    opacity.
+    We flip each image horizontally and supply it as a another sample with the steering
+    negated.
 
-![alt text][image6]
 ![alt text][image7]
 
-Etc ....
-
-After the collection process, I had X number of data points. I then preprocessed this data by ...
+After the collection process, I had 120K data points. I then preprocessed this data by ...
 
 
 I finally randomly shuffled the data set and put Y% of the data into a validation set. 
