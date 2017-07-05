@@ -1,3 +1,8 @@
+'''
+    File: augment.py
+    Author : Tawn Kramer
+    Date : July 2017
+'''
 import random
 from PIL import Image
 from PIL import ImageEnhance
