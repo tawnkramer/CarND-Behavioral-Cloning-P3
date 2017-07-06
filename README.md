@@ -15,14 +15,13 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 
 [image1]: ./examples/NetworkArch.PNG "Model Visualization"
-[image1b]: ./examples/NvidiaNetworkGraph.png "Model Graph"
 [image2]: ./examples/driving_example.jpg "Grayscaling"
 [image3]: ./examples/sim1.jpg "Recovery Image"
 [image4]: ./examples/sim2.jpg "Recovery Image"
 [image5]: ./examples/sim3.jpg "Recovery Image"
 [image6]: ./examples/training_simulator.png "custom training sim"
 [image7]: ./examples/ImageAugmentation.png "Image Aug"
-
+[image8]: ./examples/NvidiaNetworkGraph.png "Model Graph"
 
 ## Rubric Points
 ##### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -110,7 +109,7 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 The final model architecture (model.py lines 110-137) consisted of a convolution neural network with the following layers and layer sizes:
 
-![alt text][image1b]
+![alt text][image8]
 ![alt text][image1]
 
 #### 3. Creation of the Training Set & Training Process
