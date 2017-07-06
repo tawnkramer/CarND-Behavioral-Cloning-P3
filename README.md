@@ -15,6 +15,7 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 
 [image1]: ./examples/NetworkArch.PNG "Model Visualization"
+[image1b]: ./examples/NvidiaNetworkGraph.png "Model Graph"
 [image2]: ./examples/driving_example.jpg "Grayscaling"
 [image3]: ./examples/sim1.jpg "Recovery Image"
 [image4]: ./examples/sim2.jpg "Recovery Image"
@@ -107,8 +108,9 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes:
+The final model architecture (model.py lines 110-137) consisted of a convolution neural network with the following layers and layer sizes:
 
+![alt text][image1b]
 ![alt text][image1]
 
 #### 3. Creation of the Training Set & Training Process
@@ -137,4 +139,4 @@ After the collection process, I had 120K data points. I experimented with image 
 
 I finally randomly shuffled the data set and put 20% of the data into a validation set. 
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was less than 10, and influanced by the initial random seed of weights. I used an adam optimizer so that manually training the learning rate wasn't necessary.
