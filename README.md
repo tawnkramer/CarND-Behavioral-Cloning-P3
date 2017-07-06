@@ -14,7 +14,7 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/NetworkArch.png "Model Visualization"
+[image1]: ./examples/NetworkArch.PNG "Model Visualization"
 [image2]: ./examples/driving_example.jpg "Grayscaling"
 [image3]: ./examples/sim1.jpg "Recovery Image"
 [image4]: ./examples/sim2.jpg "Recovery Image"
@@ -71,6 +71,12 @@ The model used an adam optimizer, so the learning rate was not tuned manually [*
 Training data was chosen to keep the vehicle driving on the road.
 For details about how I created the training data, see the next section. 
 
+#### 5. Final result video
+---
+[![IMAGE ALT TEXT](https://img.youtube.com/vi/ZubjnJGXoiM/0.jpg)](https://www.youtube.com/watch?v=ZubjnJGXoiM "An Artificial Neural Network drives a car trained copy human driving.")
+
+---
+
 ### Model Architecture and Training Strategy
 
 #### 1. Solution Design Approach
@@ -112,23 +118,19 @@ I then recorded more data from my custom simulator:
 ![alt text][image3]
 ![alt text][image4]
 ![alt text][image5]
+
+Here is a birds eye view to see one example of the curves created randomly. The road textures were taken from screen shots of the Udacity simulation in Unity from their [open source tree](https://github.com/udacity/self-driving-car-sim). The same vehicle was used and the camera coordinates matched.
+
 ![alt text][image6]
 
 Then I repeated this process on track two in order to get more data points.
 
-As we load images, we can optionally augment them in some manner that doesn't
-    change their underlying meaning or features. This is a combination of
-    brightness, contrast, sharpness, and color PIL image filters applied with random
-    settings. Optionally a shadow image may be overlayed with some random rotation and
-    opacity.
-    We flip each image horizontally and supply it as a another sample with the steering
-    negated.
+As we load images, we can optionally augment them in some manner that doesn't change their underlying meaning or features. This is a combination of brightness, contrast, sharpness, and color PIL image filters applied with random settings. Optionally a shadow image may be overlayed with some random rotation and opacity. We flip each image horizontally and supply it as a another sample with the steering negated.
 
 ![alt text][image7]
 
-After the collection process, I had 120K data points. I then preprocessed this data by ...
+After the collection process, I had 120K data points. I experimented with image augmentation. But this yielded no appreciable improvement in performence in this simlulated environment. In real work scenerios, I have experienced that image augmentation greatly improvmes it's ability to generalize. But in this setting, it only slowed the training process and ultimately not used.
 
-
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
+I finally randomly shuffled the data set and put 20% of the data into a validation set. 
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
